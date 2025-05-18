@@ -1,6 +1,7 @@
-from django.shortcuts import get_object_or_404, redirect, render
+from django.shortcuts import redirect, render
 from .models import *
 from .forms import *
+from django.views.generic import ListView
 
 # Create your views here.
 def index(request):
@@ -22,12 +23,15 @@ def index(request):
     }
     return render(request,'pages/index.html',context)
 
-def books(request):
-    context={
-        'category':Category.objects.all(),
-         'books':Book.objects.all()
-    }
-    return render(request,'pages/books.html',context)
+class BookListView(ListView):
+    model = Book
+    template_name = 'pages/books.html'
+    context_object_name = 'books'  
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['category'] = Category.objects.all()  
+        return context
 
 def update(request,id):
     book_id =Book.objects.get(id=id)
