@@ -1,14 +1,19 @@
-from django.urls import path
-from . import views
-from .views import BookListView
+from django.urls import path, include
+from rest_framework.routers import DefaultRouter
+from .views import (
+    book_list_create,              
+    BookUpdateAPIView,              
+    BookGenericDetailView,         
+    BookViewSet                     
+)
 
-urlpatterns=[
-   path('',views.index,name='index'), 
-   path('books/', BookListView.as_view(), name='books'), 
-   path('update/<int:id>',views.update,name='update'),
-   path('delete/<int:id>',views.delete,name='delete'),
+# Router for ViewSet
+router = DefaultRouter()
+router.register('books-viewset', BookViewSet, basename='book')
 
-
-
-
+urlpatterns = [
+    path('books/', book_list_create, name='book-list-create'),                         
+    path('books/update/<int:pk>/', BookUpdateAPIView.as_view(), name='book-update'),   
+    path('books/detail/<int:pk>/', BookGenericDetailView.as_view(), name='book-detail'),
+    path('', include(router.urls)),                                                    
 ]

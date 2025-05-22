@@ -38,7 +38,9 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'lms_app.apps.LmsAppConfig'
+    'lms_app.apps.LmsAppConfig',
+    'account.apps.AccountConfig',
+    'rest_framework',
 ]
 
 MIDDLEWARE = [
@@ -129,3 +131,8 @@ MEDIA_URL = 'media/'
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+
+LOGIN_URL = 'login'
+LOGIN_REDIRECT_URL = 'index'   # اسم الصفحة بعد تسجيل الدخول
+LOGOUT_REDIRECT_URL = 'login'  # اسم الصفحة بعد تسجيل الخروج

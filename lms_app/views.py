@@ -1,57 +1,44 @@
-from django.shortcuts import redirect, render
-from .models import *
-from .forms import *
-from django.views.generic import ListView
+from rest_framework.decorators import api_view
+from rest_framework.response import Response
+from rest_framework import status, generics, viewsets
+from rest_framework.views import APIView
+from django.shortcuts import get_object_or_404
 
-# Create your views here.
-def index(request):
-    if request.method =='POST':
-        add_book=BookForm(request.POST,request.FILES)
-        if add_book.is_valid():
-            add_book.save()
-
-        add_category=CategoryForm(request.POST)
-        if add_category.is_valid():
-            add_category.save()
-
-    context={
-        'category':Category.objects.all(),
-        'books':Book.objects.all(),
-        'form':BookForm(),
-        'formcat':CategoryForm(),
-        'books_count':Book.objects.all().count
-    }
-    return render(request,'pages/index.html',context)
-
-class BookListView(ListView):
-    model = Book
-    template_name = 'pages/books.html'
-    context_object_name = 'books'  
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context['category'] = Category.objects.all()  
-        return context
-
-def update(request,id):
-    book_id =Book.objects.get(id=id)
-    if request.method =='POST':
-        book_save=BookForm(request.POST,request.FILES,book_id)
-        if book_save.is_valid():
-            book_save.save()
-            return redirect('/')
-    else:
-        book_save=BookForm(instance=book_id)
-        context= {
-            'form':book_save,
-        }
-        return render(request,'pages/update.html',context)
+from .models import Book, Category
+from .serializers import BookSerializer, CategorySerializer
 
 
-def delete(request,id):
-    book_delete=Book.objects.get(id=id)
-    if request.method == 'POST':
-        book_delete.delete()
-        return redirect('/')
-    return render(request,'pages/delete.html')
+@api_view(['GET', 'POST'])
+def book_list_create(request):
+    if request.method == 'GET':
+        books = Book.objects.all()
+        serializer = BookSerializer(books, many=True)
+        return Response(serializer.data)
     
+    elif request.method == 'POST':
+        serializer = BookSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class BookUpdateAPIView(APIView):
+    def put(self, request, pk):
+        book = get_object_or_404(Book, pk=pk)
+        serializer = BookSerializer(book, data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class BookGenericDetailView(generics.RetrieveUpdateDestroyAPIView):
+    queryset = Book.objects.all()
+    serializer_class = BookSerializer
+
+
+class BookViewSet(viewsets.ModelViewSet):
+    queryset = Book.objects.all()
+    serializer_class = BookSerializer
